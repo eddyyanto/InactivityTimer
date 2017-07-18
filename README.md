@@ -4,11 +4,13 @@ App level inactivity timer implementation through [event filter](http://doc.qt.i
 
 The 3 variables that can adjusted are below:
 
+```c++
 const int TIMEOUT           = 60000; // microseconds before inactivity kicks in
-const int MIN_BRIGHTNESS    = 12;  // brightness, 0-255
+const int MIN_BRIGHTNESS    = 12; // 7" touchscreen brightness 0-255
 const int MAX_BRIGHTNESS    = 200;
+```
 
-To use the event filter, drop in customeventfilter.h and .cpp and include it in your main entry:
+To use this event filter, drop in [customeventfilter.h](customeventfilter.h) and [customeventfilter.cpp](customeventfilter.cpp) and include it in your main entry:
 
 ```c++
 #include "mainwindow.h"

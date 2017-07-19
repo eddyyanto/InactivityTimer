@@ -3,26 +3,18 @@
 #include <QFile>
 #include <QDebug>
 
-const bool DEBUG            = true;
-const int TIMEOUT           = 60000;
-const int MIN_BRIGHTNESS    = 12;
-const int MAX_BRIGHTNESS    = 200;
-
-#ifdef Q_PROCESSOR_ARM
 const QString filename      = "/sys/class/backlight/rpi_backlight/brightness";
-#endif
-
-#ifdef Q_PROCESSOR_X86
-const QString filename      = "C:/brightness.txt";
-#endif
-
 QFile file(filename);
 
 CustomEventFilter::CustomEventFilter(QObject *parent) :
     QObject(parent)
 {
-    isSleeping = false;
-    lastBrightness = MAX_BRIGHTNESS;
+    DEBUG           = false;
+    TIMEOUT         = 60000;
+    MIN_BRIGHTNESS  = 12;
+    MAX_BRIGHTNESS  = 200;
+    isSleeping      = false;
+    lastBrightness  = MAX_BRIGHTNESS;
     inactivityTimer.setInterval(TIMEOUT);
     connect(&inactivityTimer,SIGNAL(timeout()),this,SLOT(goToSleep()));
     inactivityTimer.start();
@@ -50,30 +42,57 @@ void CustomEventFilter::adjustBrightness(int brightness)
     if(isSleeping == true){
         if(brightness != lastBrightness){
             lastBrightness = MIN_BRIGHTNESS;
-            if ( file.open(QIODevice::ReadWrite) )
-            {
-                QTextStream stream( &file );
-                stream << MIN_BRIGHTNESS << endl;
-            }else{
-                this->debug(QString("Unable to open file."));
-            }
-            file.close();
+            this->commitBrightness(MIN_BRIGHTNESS);
             this->debug(QString("Sleep."));
         }
     }else if(isSleeping == false){
         if(brightness != lastBrightness){
             lastBrightness = MAX_BRIGHTNESS;
-            if ( file.open(QIODevice::ReadWrite) )
-            {
-                QTextStream stream( &file );
-                stream << MAX_BRIGHTNESS << endl;
-            }else{
-                this->debug(QString("Unable to open file."));
-            }
-            file.close();
+            this->commitBrightness(MAX_BRIGHTNESS);
             this->debug(QString("Wake up."));
         }
     }
+}
+
+void CustomEventFilter::commitBrightness(int brightness)
+{
+    if (file.open(QIODevice::ReadWrite))
+    {
+        QTextStream stream( &file );
+        stream << brightness << endl;
+    }else{
+        this->debug(QString("Unable to open file."));
+    }
+    file.close();
+}
+
+void CustomEventFilter::setTimeOut(int microseconds)
+{
+    this->TIMEOUT = microseconds;
+    this->inactivityTimer.setInterval(this->TIMEOUT);
+}
+
+void CustomEventFilter::setMinBrightness(int brightness)
+{
+    if(brightness < 0 && brightness > 255){
+        this->debug("Brightness out or range (0-255.");
+        return;
+    }
+    this->MIN_BRIGHTNESS = brightness;
+}
+
+void CustomEventFilter::setMaxBrightness(int brightness)
+{
+    if(brightness < 0 && brightness > 255){
+        this->debug("Brightness out or range (0-255.");
+        return;
+    }
+    this->MAX_BRIGHTNESS = brightness;
+}
+
+void CustomEventFilter::setDebug(bool status)
+{
+    this->DEBUG = status;
 }
 
 void CustomEventFilter::debug(QString message)

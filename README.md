@@ -1,20 +1,22 @@
-###  InactivityTimer — Qt Custom Event Filter Implementation 
+###  InactivityTimer — Sleep/Wake Event Filter Implementation
+---
 
-Application level inactivity/sleep timer implementation through [event filter](http://doc.qt.io/qt-5/eventsandfilters.html) in Qt EGLFS. 
+Application level sleep/wake implementation through [event filter](http://doc.qt.io/qt-5/eventsandfilters.html) in Qt EGLFS. 
 
-This timer is used to dim/blank the screen on Qt EGLFS application once the filter detects no key/mouse movement for a period of time. The dimming/blanking was done through writing a value within a range of 0 to 255 to **/sys/class/backlight/rpi_backlight/brightness**.
+This timer is used for dimming or blanking the screen on Qt EGLFS application when there is no keyboard or mouse activity for a period of time. Once keyboard or mouse is pressed. the screen will then wake up to the full brightness.
 
-This timer used is to replace system level screen saver/screen blanking on Raspbian, which doesn't work if the Qt application directly run on top of [EGLFS](http://doc.qt.io/qt-5/embedded-linux.html).
+This timer make use of QEvent::KeyPress and QEvent::MouseMove hooks and waits for the hooks to trigger and adjust the screen brightness by writing a value (0 to 255) to **/sys/class/backlight/rpi_backlight/brightness**. It is used to replace system level screen saver/screen blanking on Raspbian, which doesn't work if the Qt application run directly on top of [EGLFS](http://doc.qt.io/qt-5/embedded-linux.html).
 
-The 3 variables (in customeventfilter.cpp) that can adjusted are below:
+The 4 variables in this timer are:
 
 ```c++
-const int TIMEOUT           = 60000; // microseconds before inactivity kicks in
-const int MIN_BRIGHTNESS    = 12; // 7" touchscreen brightness within a range of 0 to 255, higher is brighter
-const int MAX_BRIGHTNESS    = 200;
+filter.setDebug(false);
+filter.setTimeOut(60000); // microseconds before inactivity kicks in, defaults to 1 minute
+filter.setMinBrightness(12); // 7" official touchscreen brightness (0 to 255), higher is brighter
+filter.setMaxBrightness(200);
 ```
 
-To use this event filter, drop in [customeventfilter.h](customeventfilter.h) and [customeventfilter.cpp](customeventfilter.cpp) to your project. And include the header in your main.cpp:
+To use this sleep/wake event filter in your Qt application, drop in [customeventfilter.h](customeventfilter.h) and [customeventfilter.cpp](customeventfilter.cpp) to your project, include the header in your main.cpp and install the filter to the instance of QApplication:
 
 ```c++
 #include "mainwindow.h"
@@ -28,13 +30,19 @@ int main(int argc, char *argv[])
     w.show();
 
     CustomEventFilter filter;
+    filter.setDebug(false);
+    filter.setTimeOut(60000);
+    filter.setMinBrightness(12);
+    filter.setMaxBrightness(200);
     a.installEventFilter(&filter);
 
     return a.exec();
 }
+
 ```
 
 #### Tested on
+---
 - Raspbian Jessie Lite
 - Raspberry Pi 2 Model B
 - Official 7" Touchscreen

@@ -12,17 +12,26 @@ class CustomEventFilter : public QObject
 public:
     explicit CustomEventFilter(QObject *parent = 0);
     bool eventFilter(QObject *obj, QEvent *ev);
+
+    bool DEBUG;
+    int TIMEOUT;
+    int MIN_BRIGHTNESS;
+    int MAX_BRIGHTNESS;
+
     QTimer inactivityTimer;
     bool isSleeping;
     int lastBrightness;
-    void adjustBrightness(int brightness);
-    void debug(QString message);
 
-signals:
+    void setTimeOut(int microseconds);
+    void setMinBrightness(int brightness);
+    void setMaxBrightness(int brightness);
+    void setDebug(bool status);
+    void adjustBrightness(int brightness);
+    void commitBrightness(int brightness);
+    void debug(QString message);
 
 public slots:
     void goToSleep();
 
 };
-
 #endif // CUSTOMEVENTFILTER_H

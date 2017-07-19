@@ -9,6 +9,10 @@ int main(int argc, char *argv[])
     w.show();
 
     CustomEventFilter filter;
+    filter.setDebug(false);
+    filter.setTimeOut(5000);
+    filter.setMinBrightness(12);
+    filter.setMaxBrightness(200);
     a.installEventFilter(&filter);
 
     return a.exec();
